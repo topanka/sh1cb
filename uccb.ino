@@ -11,7 +11,7 @@
 #include <RunningAverage.h>
 #include <umpmega.h>
 
-#define UCCB_VERSION        "1.3.5"
+#define UCCB_VERSION        "1.3.6"
 
 //battery
 #define UCCB_BATTV_PORT          A5
