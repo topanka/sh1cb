@@ -39,9 +39,15 @@ SMAR g_smar_battV={0};
 
 int g_adjps_on=0;
 int g_adjps_level=-1;
-#define UCCB_ADJV_PORT          A1
+#define UCCB_ADJV_PORT           A1
 SMAR g_smar_ADJV={0};
 int g_adjV=-1;
+
+#define UCCB_FS_SRV_PWR_UMPPORT  4       //PH7
+#define UCCB_FS_SRV_PWR_ON       LOW
+#define UCCB_FS_SRV_PWR_OFF      HIGH
+
+int g_fs_servo_on=0;
 
 #define UCCB_3_3V_PORT          A8
 SMAR g_smar_3_3V={0};
