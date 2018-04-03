@@ -32,7 +32,6 @@ void setup()
   uccb_clb_autocenter_TS();
   uccb_clb_autocenter_FS();
   eval_setup();
-//  finscan_setup();
   
   g_loop_ct=millis();
 }

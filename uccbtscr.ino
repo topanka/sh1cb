@@ -22,6 +22,12 @@ unsigned int g_rts_len=0;
 
 int tscr_setup(void)
 {
+  ump_pinMode(UCCB_TSCR_ON_UMPPORT,OUTPUT);
+  if(g_tscr_on == UCCB_TSCR_ON_ON) {
+    ump_digitalWrite(UCCB_TSCR_ON_UMPPORT,UCCB_TSCR_ON_ON);
+  } else {
+    ump_digitalWrite(UCCB_TSCR_ON_UMPPORT,UCCB_TSCR_ON_OFF);
+  }
   Serial3.begin(115200);
   return(0);
 }

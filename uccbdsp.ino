@@ -37,6 +37,10 @@
 #define UCCB_DSP_SH3_OI_NUM                  4
 
 #define UCCB_DSP_FINSCAN_OI_NUM              5
+#define UCCB_DSP_ADJPS_OI_NUM                2
+#define UCCB_DSP_TSCR_OI_NUM                 1
+
+#define UCCB_DSP_TOOLS_OI_NUM                5
 
 byte h1[8] = {
   0b00000,
@@ -71,6 +75,7 @@ byte h3[8] = {
 
 unsigned long g_dsp_lastprinttime=0;
 int g_clb_phase=UCCB_DSP_CLB_TSCENX_TXT;
+int g_tools_sml=0;
 
 int numPlaces(unsigned long n)
 {
@@ -94,6 +99,17 @@ int printSpaces(long n, int l)
   lcd.print(n);
   for(;l-np > 0;l--) {
     lcd.print(" ");
+  }
+  return(0);
+}
+
+int printZeros(long n, int l)
+{
+  int np;
+  
+  np=numPlaces(n);
+  for(;l-np > 0;l--) {
+    lcd.print("0");
   }
   return(0);
 }
@@ -250,17 +266,6 @@ void dsp_scr_pwr(int force)
 
   if((force == 1) ||
      (l_b6pBE != g_b6pBE)) {
-//test only    
-    if(g_b6pBE == 21) {
-      digitalWrite(UCCB_BATTSTATE_PORT,HIGH);
-      ump_digitalWrite(UCCB_ADJPS_ON_UMPPORT,UCCB_ADJPS_ON_OFF);
-      g_adjps_on=0;
-    }
-    if(g_b6pBE == 51) {
-      digitalWrite(UCCB_BATTSTATE_PORT,LOW);
-      ump_digitalWrite(UCCB_ADJPS_ON_UMPPORT,UCCB_ADJPS_ON_ON);
-      g_adjps_on=1;
-    }
     l_b6pBE=g_b6pBE;
   }
   
@@ -271,7 +276,9 @@ void dsp_scr_pwr(int force)
     xx=(1000L*g_3_3V)/1024L;
     lcd.print(xx/100,10);
     lcd.print(".");
-    lcd.print(xx%100,10);
+    xx%=100;    
+    printZeros(xx,2);
+    lcd.print(xx,10);
     lcd.print("V");
     l_3_3V=g_3_3V;
   }
@@ -283,7 +290,9 @@ void dsp_scr_pwr(int force)
     xx=(1000L*g_5_0V)/1024L;
     lcd.print(xx/100,10);
     lcd.print(".");
-    lcd.print(xx%100,10);
+    xx%=100;    
+    printZeros(xx,2);
+    lcd.print(xx,10);
     lcd.print("V");
     l_5_0V=g_5_0V;
   }
@@ -295,14 +304,20 @@ void dsp_scr_pwr(int force)
     xx=(1000L*g_adjV)/1024L;
     lcd.print(xx/100,10);
     lcd.print(".");
-    lcd.print(xx%100,10);
+    xx%=100;    
+    printZeros(xx,2);
+    lcd.print(xx,10);
     lcd.print("V");
-    if(g_adjps_level == UCCB_ADJPS_LEVEL_LOW) {
-      lcd.print(" LOW ");
-    } else if(g_adjps_level == UCCB_ADJPS_LEVEL_HIGH) {
-      lcd.print(" HIGH");
+    if(g_adjps_on == 1) {
+      if(g_adjps_level == UCCB_ADJPS_LEVEL_LOW) {
+        lcd.print(" LOW ");
+      } else if(g_adjps_level == UCCB_ADJPS_LEVEL_HIGH) {
+        lcd.print(" HIGH");
+      } else {
+        lcd.print(" --- ");
+      }
     } else {
-      lcd.print(" --- ");
+      lcd.print(" OFF ");
     }
     l_adjV=g_adjV;
   }
@@ -442,37 +457,16 @@ void dsp_scr_ship1(int force)
       lcd.print(xx,10);
     }
     lcd.print("V/");
-
-/*    
-    lcd.print(g_sh1_battV,10);
-    lcd.print("   ");
-*/
     l_battV=g_sh1_battV;
-    
     lcd.setCursor(11,1);
     if(g_sh1_battA < 0) {
       lcd.print("0.00");
     } else {
-/*      
-      xx=(g_sh1_battA_a*g_sh1_battA+g_sh1_battA_b)/1000L;
-      lcd.print(xx/100,10);
-      lcd.print(".");
-      xx%=100;
-      if(xx < 10) {
-        lcd.print("0");
-      } 
-*/
       xx=(g_sh1_battA-512)*55.35;
       lcd.print(xx,10);
     }
     lcd.print("mA   ");
-
-/*
-    lcd.print(g_sh1_battA,10);
-    lcd.print("   ");
-*/    
     l_battA=g_sh1_battA;
-    
     lcd.setCursor(0,2);
     lcd.print("mLc=");
     lcd.print(g_sh1_m2c,10);
@@ -724,6 +718,8 @@ void dsp_scr_fingerscan(int force)
         lcd.blink();
       } else if(l_oi == 3) {
       }
+    } else if(g_key == UCCB_KEY_CANCEL) {
+      g_tools_sml=0;
     }
   } else {
     if(g_key == UCCB_KEY_CANCEL) {
@@ -896,6 +892,478 @@ void dsp_scr_fingerscan(int force)
     }
     l_key=g_key;
   }
+}
+
+void dsp_scr_adjps(int force)
+{
+  static int l_cli=1;
+  static int l_oi=1;
+  static int l_key=NO_KEY;
+  static int l_mode=0;
+  int diff,l2p,fsret;
+
+  if(force == 1) l_mode=0;
+  if(l_mode == 1) {
+    l_mode=2;
+    if(l_oi == 1) {
+    } else if(l_oi == 2) {
+    } else if(l_oi == 3) {
+    } else if(l_oi == 4) {
+    } else if(l_oi == 5) {
+    }
+  }
+  if(l_mode == 0) {
+//    finscan_move(0);
+    if(g_key == UCCB_KEY_UP) {
+      if(l_cli > 1) {
+        l_cli--;
+        l_oi--;
+      } else {
+        if(l_oi > 1) {
+          l_oi--;
+        } else {
+          l_oi=UCCB_DSP_ADJPS_OI_NUM;
+          if(l_oi >= 3) l_cli=3;
+          else l_cli=UCCB_DSP_ADJPS_OI_NUM;
+        }
+      }
+    } else if(g_key == UCCB_KEY_DOWN) {
+      if(l_cli >= UCCB_DSP_ADJPS_OI_NUM) {
+        if(l_oi >= UCCB_DSP_ADJPS_OI_NUM) {
+          l_cli=1;
+          l_oi=1;
+        } else {
+          l_oi++;
+        }
+      } else {
+        l_oi++;
+        l_cli++;
+      }
+    } else if(g_key == UCCB_KEY_ENTER) {
+      l_mode=1;
+    } else if(g_key == UCCB_KEY_CANCEL) {
+      g_tools_sml=0;
+    }
+  } else {
+    if(g_key == UCCB_KEY_CANCEL) {
+      l_mode=0;
+    }
+  }
+
+  if(l_mode == 2) {
+    if(l_oi == 1) {
+      if(g_adjps_on == 0) g_adjps_on=1;
+      else g_adjps_on=0;
+      adjps_power_switch();
+      l_mode=0;
+      force=1;
+    } else if(l_oi == 2) {
+      if(g_adjps_level == UCCB_ADJPS_LEVEL_HIGH) g_adjps_level=UCCB_ADJPS_LEVEL_LOW;
+      else g_adjps_level=UCCB_ADJPS_LEVEL_HIGH;
+      adjps_level_switch();
+      l_mode=0;
+      force=1;
+    } else if(l_oi == 3) {
+       l_mode=0;
+    } else if(l_oi == 4) {
+       l_mode=0;
+    }
+  }
+  
+  if((force == 1) ||
+     ((l_key != g_key) && (l_mode == 0))) {
+
+    diff=l_cli-l_oi;   
+    l2p=1;    
+    if((diff+1 >= 1) && (diff+1 <= 3)) {
+      lcd.setCursor(0,l2p);
+      if(l_cli == l2p) {
+        lcd.print("*");
+      } else {
+        lcd.print(" ");
+      }
+      lcd.print("Adj. PS:");
+      if(g_adjps_on == 1) {
+        lcd.print(" On ");
+      } else {
+        lcd.print(" Off");
+      }
+      l2p++;
+    }
+    
+    if((diff+2 >= 1) && (diff+2 <= 3)) {
+      lcd.setCursor(0,l2p);
+      if(l_cli == l2p) {
+        lcd.print("*");
+      } else {
+        lcd.print(" ");
+      }
+      lcd.print("Output level:");
+      if(g_adjps_level == UCCB_ADJPS_LEVEL_HIGH) {
+        lcd.print(" High");
+      } else if(g_adjps_level == UCCB_ADJPS_LEVEL_LOW) {
+        lcd.print(" Low ");
+      } else {
+        lcd.print(" ----");
+      }
+      l2p++;
+    }
+    
+    if(((diff+3 >= 1) && (diff+3 <= 3)) && (UCCB_DSP_ADJPS_OI_NUM >= 3)) {
+      lcd.setCursor(0,l2p);
+      if(l_cli == l2p) {
+        lcd.print("*");
+      } else {
+        lcd.print(" ");
+      }
+      lcd.print("Menu Line 3       ");
+      l2p++;
+    }
+    
+    if((diff+4 >= 1) && (diff+4 <= 3)) {
+      lcd.setCursor(0,l2p);
+      if(l_cli == l2p) {
+        lcd.print("*");
+      } else {
+        lcd.print(" ");
+      }
+      lcd.print("Menu Line 4    ");
+      l2p++;
+    }
+    
+    if((diff+5 >= 1) && (diff+5 <= 3)) {
+      lcd.setCursor(0,l2p);
+      if(l_cli == l2p) {
+        lcd.print("*");
+      } else {
+        lcd.print(" ");
+      }
+      lcd.print("Menu line5         ");
+      l2p++;
+    }
+    
+    if(l_oi == 1) {
+      lcd.setCursor(0,l_cli);
+    } else if(l_oi == 2) {
+      lcd.setCursor(0,l_cli);
+    } else if(l_oi == 3) {
+      lcd.setCursor(0,l_cli);
+    } else if(l_oi == 4) {
+      lcd.setCursor(0,l_cli);
+    } else if(l_oi == 5) {
+      lcd.setCursor(0,l_cli);
+    }
+    l_key=g_key;
+  }
+}
+
+void dsp_scr_tscr(int force)
+{
+  static int l_cli=1;
+  static int l_oi=1;
+  static int l_key=NO_KEY;
+  static int l_mode=0;
+  int diff,l2p;
+
+  if(force == 1) l_mode=0;
+  if(l_mode == 1) {
+    l_mode=2;
+    if(l_oi == 1) {
+    } else if(l_oi == 2) {
+    } else if(l_oi == 3) {
+    } else if(l_oi == 4) {
+    } else if(l_oi == 5) {
+    }
+  }
+  if(l_mode == 0) {
+    if(g_key == UCCB_KEY_UP) {
+      if(l_cli > 1) {
+        l_cli--;
+        l_oi--;
+      } else {
+        if(l_oi > 1) {
+          l_oi--;
+        } else {
+          l_oi=UCCB_DSP_TSCR_OI_NUM;
+          if(l_oi >= 3) l_cli=3;
+          else l_cli=UCCB_DSP_TSCR_OI_NUM;
+        }
+      }
+    } else if(g_key == UCCB_KEY_DOWN) {
+      if((l_cli >= 3) || (l_cli >= UCCB_DSP_TSCR_OI_NUM)) {
+        if(l_oi >= UCCB_DSP_TSCR_OI_NUM) {
+          l_cli=1;
+          l_oi=1;
+        } else {
+          l_oi++;
+        }
+      } else {
+        l_oi++;
+        l_cli++;
+      }
+    } else if(g_key == UCCB_KEY_ENTER) {
+      l_mode=1;
+    } else if(g_key == UCCB_KEY_CANCEL) {
+      g_tools_sml=0;
+    }
+  } else {
+    if(g_key == UCCB_KEY_CANCEL) {
+      l_mode=0;
+    }
+  }
+
+  if(l_mode == 2) {
+    if(l_oi == 1) {
+      if(g_tscr_on == UCCB_TSCR_ON_OFF) g_tscr_on=UCCB_TSCR_ON_ON;
+      else g_tscr_on=UCCB_TSCR_ON_OFF;
+      tscr_power_switch();
+      l_mode=0;
+      force=1;
+    } else if(l_oi == 2) {
+      l_mode=0;
+    } else if(l_oi == 3) {
+       l_mode=0;
+    } else if(l_oi == 4) {
+       l_mode=0;
+    }
+  }
+  
+  if((force == 1) ||
+     ((l_key != g_key) && (l_mode == 0))) {
+    diff=l_cli-l_oi;   
+    l2p=1;    
+    if((diff+1 >= 1) && (diff+1 <= 3)) {
+      lcd.setCursor(0,l2p);
+      if(l_cli == l2p) {
+        lcd.print("*");
+      } else {
+        lcd.print(" ");
+      }
+      lcd.print("Touch screen:");
+      if(g_tscr_on == UCCB_TSCR_ON_ON) {
+        lcd.print(" On ");
+      } else {
+        lcd.print(" Off");
+      }
+      l2p++;
+    }
+    
+    if(((diff+2 >= 1) && (diff+2 <= 3)) && (UCCB_DSP_TSCR_OI_NUM >= 2)){
+      lcd.setCursor(0,l2p);
+      if(l_cli == l2p) {
+        lcd.print("*");
+      } else {
+        lcd.print(" ");
+      }
+      lcd.print("Menu Line 2        ");
+      l2p++;
+    }
+
+    if(((diff+3 >= 1) && (diff+3 <= 3)) && (UCCB_DSP_TSCR_OI_NUM >= 3)) {
+      lcd.setCursor(0,l2p);
+      if(l_cli == l2p) {
+        lcd.print("*");
+      } else {
+        lcd.print(" ");
+      }
+      lcd.print("Menu Line 3        ");
+      l2p++;
+    }
+    
+    if((diff+4 >= 1) && (diff+4 <= 3)) {
+      lcd.setCursor(0,l2p);
+      if(l_cli == l2p) {
+        lcd.print("*");
+      } else {
+        lcd.print(" ");
+      }
+      lcd.print("Menu Line 4        ");
+      l2p++;
+    }
+    
+    if((diff+5 >= 1) && (diff+5 <= 3)) {
+      lcd.setCursor(0,l2p);
+      if(l_cli == l2p) {
+        lcd.print("*");
+      } else {
+        lcd.print(" ");
+      }
+      lcd.print("Menu line 5        ");
+      l2p++;
+    }
+    
+    if(l_oi == 1) {
+      lcd.setCursor(0,l_cli);
+    } else if(l_oi == 2) {
+      lcd.setCursor(0,l_cli);
+    } else if(l_oi == 3) {
+      lcd.setCursor(0,l_cli);
+    } else if(l_oi == 4) {
+      lcd.setCursor(0,l_cli);
+    } else if(l_oi == 5) {
+      lcd.setCursor(0,l_cli);
+    }
+    l_key=g_key;
+  }
+}
+
+void dsp_scr_tools(int force)
+{
+  static int l_cli=1;
+  static int l_oi=1;
+  static int l_key=NO_KEY;
+  static int l_mode=0;
+  int diff,l2p;
+
+  if(force == 1) {
+    l_mode=0;
+    g_tools_sml=0;
+  }
+  if((l_mode == 1) && (g_tools_sml == 0)) {
+    l_mode=2;
+    g_tools_sml=1;
+    force=1;
+    if(l_oi == 1) {
+    } else if(l_oi == 2) {
+    } else if(l_oi == 3) {
+    } else if(l_oi == 4) {
+    }
+  }
+
+  if((l_mode == 0) && (g_tools_sml == 0)) {
+    if(g_key == UCCB_KEY_UP) {
+      if(l_cli > 1) {
+        l_cli--;
+        l_oi--;
+      } else {
+        if(l_oi > 1) {
+          l_oi--;
+        } else {
+          l_oi=UCCB_DSP_TOOLS_OI_NUM;
+          l_cli=3;
+        }
+      }
+    } else if(g_key == UCCB_KEY_DOWN) {
+      if(l_cli > 2) {
+        if(l_oi >= UCCB_DSP_TOOLS_OI_NUM) {
+          l_cli=1;
+          l_oi=1;
+        } else {
+          l_oi++;
+        }
+      } else {
+        l_oi++;
+        l_cli++;
+      }
+    } else if(g_key == UCCB_KEY_ENTER) {
+      l_mode=1;
+      if(l_oi == 1) {
+      } else if(l_oi == 2) {
+        dsp_scr_clear_line(1);
+        dsp_scr_clear_line(2);
+        dsp_scr_clear_line(3);
+      } else if(l_oi == 3) {
+        dsp_scr_clear_line(1);
+        dsp_scr_clear_line(2);
+        dsp_scr_clear_line(3);
+      }
+    }
+  }
+  
+  if((l_mode == 2) && (g_tools_sml == 1)) {
+    if(l_oi == 1) {
+      dsp_scr_fingerscan(force);
+    } else if(l_oi == 2) {
+      dsp_scr_adjps(force);
+//      g_tools_sml=0;
+    } else if(l_oi == 3) {
+      dsp_scr_tscr(force);
+//      g_tools_sml=0;
+    } else if(l_oi == 4) {
+      g_tools_sml=0;
+    } else if(l_oi == 5) {
+      g_tools_sml=0;
+    }
+    if(g_tools_sml == 0) {
+      l_mode=0;
+      force=1;
+    }
+  }
+
+  if(((force == 1) || ((l_key != g_key) && (l_mode == 0))) &&
+     (g_tools_sml == 0)) {
+
+    diff=l_cli-l_oi;   
+    l2p=1;    
+    if((diff+1 >= 1) && (diff+1 <= 3)) {
+      lcd.setCursor(0,l2p);
+      if(l_cli == l2p) {
+        lcd.print("*");
+      } else {
+        lcd.print(" ");
+      }
+      lcd.print("Finscan          ->");
+      l2p++;
+    }
+    
+    if((diff+2 >= 1) && (diff+2 <= 3)) {
+      lcd.setCursor(0,l2p);
+      if(l_cli == l2p) {
+        lcd.print("*");
+      } else {
+        lcd.print(" ");
+      }
+      lcd.print("Adj. Pwr Supply  ->");
+      l2p++;
+    }
+    
+    if((diff+3 >= 1) && (diff+3 <= 3)) {
+      lcd.setCursor(0,l2p);
+      if(l_cli == l2p) {
+        lcd.print("*");
+      } else {
+        lcd.print(" ");
+      }
+      lcd.print("Touch screen     ->");
+      l2p++;
+    }
+    
+    if((diff+4 >= 1) && (diff+4 <= 3)) {
+      lcd.setCursor(0,l2p);
+      if(l_cli == l2p) {
+        lcd.print("*");
+      } else {
+        lcd.print(" ");
+      }
+      lcd.print("Unused2            ");
+      l2p++;
+    }
+    
+    if((diff+5 >= 1) && (diff+5 <= 3)) {
+      lcd.setCursor(0,l2p);
+      if(l_cli == l2p) {
+        lcd.print("*");
+      } else {
+        lcd.print(" ");
+      }
+      lcd.print("Unused3            ");
+      l2p++;
+    }
+    
+    if(l_oi == 1) {
+      lcd.setCursor(0,l_cli);
+    } else if(l_oi == 2) {
+      lcd.setCursor(0,l_cli);
+    } else if(l_oi == 3) {
+      lcd.setCursor(0,l_cli);
+    } else if(l_oi == 4) {
+      lcd.setCursor(0,l_cli);
+    } else if(l_oi == 5) {
+      lcd.setCursor(0,l_cli);
+    }
+    l_key=g_key;
+  }
+  
 }
 
 //1. position lights
@@ -1375,7 +1843,7 @@ void dsp_scr_calibration(int force)
 void dsp_scr_battshutdown(void)
 {
   long r;
-  
+
   if(tmr_do(&g_tmr_battV_shutdown) == 1) {
     if(g_tmr_battV_shutdown.cnt > 40) {
       r=(80-g_tmr_battV_shutdown.cnt)/4;
@@ -1434,10 +1902,10 @@ void dsp_print(void)
       dsp_scr_main(force);
       break;
     case 2:
-        dsp_scr_pwr(force);
+      dsp_scr_pwr(force);
       break;
     case 3:
-      dsp_scr_fingerstick(force);
+    dsp_scr_fingerstick(force);
       dsp_scr_thumbstick(force);
       break;
     case 4:
@@ -1447,7 +1915,10 @@ void dsp_print(void)
       dsp_scr_calibration(force);
       break;
     case 6:
-      dsp_scr_fingerscan(force);
+//      dsp_scr_fingerscan(force);
+//      dsp_scr_adjps(force);
+//      dsp_scr_tscr(force);
+      dsp_scr_tools(force);
       break;
     case 8:
       dsp_scr_ship3(force);

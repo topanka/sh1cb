@@ -44,8 +44,9 @@ SMAR g_smar_ADJV={0};
 int g_adjV=-1;
 
 #define UCCB_FS_SRV_PWR_UMPPORT  4       //PH7
-#define UCCB_FS_SRV_PWR_ON       LOW
-#define UCCB_FS_SRV_PWR_OFF      HIGH
+//#define UCCB_FS_SRV_PWR_PORT  41       //PG0
+#define UCCB_FS_SRV_PWR_ON       HIGH
+#define UCCB_FS_SRV_PWR_OFF      LOW
 
 int g_fs_servo_on=0;
 
@@ -198,6 +199,12 @@ int g_sh1_temperature=-1;
 unsigned long g_scnt=0;
 
 //touch screen
+
+#define UCCB_TSCR_ON_UMPPORT     5       //PG3
+#define UCCB_TSCR_ON_ON          HIGH
+#define UCCB_TSCR_ON_OFF         LOW
+
+int g_tscr_on=UCCB_TSCR_ON_OFF;
 
 unsigned long g_tscr_loopcps=0;
 int g_tscr_touchx=-1;

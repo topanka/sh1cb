@@ -1,5 +1,4 @@
 #define SMAR_AVCH_MIN          1
-//#define SMAR_VCH_MIN           6
 #define SMAR_VCH_TMO           300
 
 
@@ -120,7 +119,6 @@ int smar_analogRead(SMAR *smar)
 {
   int rval=-1,v,lvch=0;
   int sv;
-//  int x=0;
 
   if(smar->loc == SMAR_ADCLOC_ARDUINO) {
     sv=analogRead(smar->port);
@@ -130,26 +128,13 @@ int smar_analogRead(SMAR *smar)
     goto end;
   }
   v=smar->sum/smar->avn;
-//  if(abs(sv-v) > SMAR_VCH_MIN) {
   if(abs(sv-v) > smar->vcmin) {
     smar->sum-=smar->tbl[smar->idx];
     smar->sum+=sv;
     smar->tbl[smar->idx]=sv;
     smar->idx=(smar->idx+1)%smar->avn;
     v=smar->sum/smar->avn;
-//    x=1;
   }
-
-/*
-  if(smar->port == MCP3008_CH3) {
-    Serial.print(x);
-    Serial.print(" ");
-    Serial.print(sv);
-    Serial.print(" ");
-    Serial.print(v);
-  }
-*/  
-
   if(smar->lvv < 0) {
     smar->lvv=v;
     smar->lvc=0;
@@ -164,12 +149,6 @@ int smar_analogRead(SMAR *smar)
         if(abs(smar->lvv-v) <= SMAR_AVCH_MIN) {
           if((g_millis-smar->lvt) > SMAR_VCH_TMO) {
             lvch=1;
-            
-/*            
-  if(smar->port == MCP3008_CH3) {
-    Serial.print(" time ");
-  }    
-*/  
           }
         } else {
           lvch=1;
@@ -189,15 +168,21 @@ int smar_analogRead(SMAR *smar)
 
 end:
 
-/*  
-  if(smar->port == MCP3008_CH3) {
-    Serial.print(" ");
-    Serial.println(rval);
-  }
-*/  
-  
   return(rval);
 }
 
-
+int smar_reset(SMAR *smar)
+{
+  int i;
+  
+  smar->idx=0;
+  smar->sum=0;
+  smar->lvv=0;
+  smar->lvc=0;
+  smar->lvt=0;
+  for(i=0;i < SMAR_TOT_NUM;i++) {
+    smar->tbl[i]=0;
+  }
+  return(0);
+}
 

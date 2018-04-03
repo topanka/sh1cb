@@ -58,7 +58,9 @@ void timer_test(void)
 void finscan_setup(void)
 {
   ump_pinMode(UCCB_FS_SRV_PWR_UMPPORT,OUTPUT);
-  ump_digitalWrite(UCCB_FS_SRV_PWR_UMPPORT,UCCB_FS_SRV_PWR_OFF);
+//  pinMode(UCCB_FS_SRV_PWR_PORT,OUTPUT);
+//  ump_digitalWrite(UCCB_FS_SRV_PWR_UMPPORT,UCCB_FS_SRV_PWR_OFF);
+  digitalWrite(UCCB_FS_SRV_PWR_UMPPORT,UCCB_FS_SRV_PWR_OFF);
   g_fs_servo_on=0;
   
   g_servo_finscan.attach(7,900,2100);
@@ -80,7 +82,10 @@ void finscan_move(int show)
   if(tmr_do(&g_tmr_finscan) == 1) {
     if((g_finscan_pos < FINSCAN_SERVO_MAX_POS) && (g_finscan_pos > FINSCAN_SERVO_MIN_POS)) {
       if(g_fs_servo_on == 0) {
+Serial.println("servo on");
+        
         ump_digitalWrite(UCCB_FS_SRV_PWR_UMPPORT,UCCB_FS_SRV_PWR_ON);
+//        digitalWrite(UCCB_FS_SRV_PWR_PORT,UCCB_FS_SRV_PWR_ON);
         g_fs_servo_on=1;
       }
     }
@@ -94,8 +99,10 @@ void finscan_move(int show)
     }
     if(g_finscan_pos <= FINSCAN_SERVO_MIN_POS) {
       if(g_fs_servo_on == 1) {
+Serial.println("servo off");
         delay(150);
         ump_digitalWrite(UCCB_FS_SRV_PWR_UMPPORT,UCCB_FS_SRV_PWR_OFF);
+//        digitalWrite(UCCB_FS_SRV_PWR_PORT,UCCB_FS_SRV_PWR_OFF);
         g_fs_servo_on=0;
       }
     }

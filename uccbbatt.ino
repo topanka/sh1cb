@@ -18,17 +18,19 @@ int batt_setup(void)
 
   ump_pinMode(UCCB_ADJPS_ON_UMPPORT,OUTPUT);
 
+/*
   ump_digitalWrite(UCCB_ADJPS_ON_UMPPORT,UCCB_ADJPS_ON_OFF);
   g_adjps_on=0;
+*/  
   
-/*
+
   ump_digitalWrite(UCCB_ADJPS_ON_UMPPORT,UCCB_ADJPS_ON_ON);
   g_adjps_on=1;
-*/
+
 
   ump_pinMode(UCCB_ADJPS_LEVEL_UMPPORT,OUTPUT);
-  ump_digitalWrite(UCCB_ADJPS_LEVEL_UMPPORT,UCCB_ADJPS_LEVEL_LOW);
-  g_adjps_level=UCCB_ADJPS_LEVEL_LOW;
+  ump_digitalWrite(UCCB_ADJPS_LEVEL_UMPPORT,UCCB_ADJPS_LEVEL_HIGH);
+  g_adjps_level=UCCB_ADJPS_LEVEL_HIGH;
 
   avn=7;
   smar_init(&g_smar_ADJV,SMAR_ADCLOC_ARDUINO,UCCB_ADJV_PORT,avn,5,3);
@@ -182,5 +184,55 @@ int batt_poweroff(void)
     }
   }
   return(0);
+}
+
+int adjps_power_switch(void)
+{
+  int i;
+  
+  smar_reset(&g_smar_ADJV);
+  if(g_adjps_on == 1) {
+    ump_digitalWrite(UCCB_ADJPS_ON_UMPPORT,UCCB_ADJPS_ON_ON);
+  } else {
+    ump_digitalWrite(UCCB_ADJPS_ON_UMPPORT,UCCB_ADJPS_ON_OFF);
+  }
+  delay(250);
+  for(i=0;i < 2*g_smar_ADJV.avn;i++) {
+    g_adjV=smar_analogRead(&g_smar_ADJV);
+  }
+
+  return(0);
+}
+
+int adjps_level_switch(void)
+{
+  int i;
+  
+  smar_reset(&g_smar_ADJV);
+  if(g_adjps_level == UCCB_ADJPS_LEVEL_HIGH) {
+    ump_digitalWrite(UCCB_ADJPS_LEVEL_UMPPORT,UCCB_ADJPS_LEVEL_HIGH);
+  } else {
+    ump_digitalWrite(UCCB_ADJPS_LEVEL_UMPPORT,UCCB_ADJPS_LEVEL_LOW);
+  }
+  delay(250);
+  for(i=0;i < 2*g_smar_ADJV.avn;i++) {
+    g_adjV=smar_analogRead(&g_smar_ADJV);
+  }
+
+  return(0);
+}
+
+int tscr_power_switch(void)
+{
+  int i;
+  
+  if(g_tscr_on == UCCB_TSCR_ON_ON) {
+    ump_digitalWrite(UCCB_TSCR_ON_UMPPORT,UCCB_TSCR_ON_ON);
+  } else {
+    ump_digitalWrite(UCCB_TSCR_ON_UMPPORT,UCCB_TSCR_ON_OFF);
+  }
+  
+  return(0);
+
 }
 
