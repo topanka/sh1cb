@@ -633,7 +633,17 @@ void dsp_scr_new_operator(void)
 void dsp_scr_operator_logoff(void)
 {
   lcd.setCursor(0,1);
-  lcd.print("Logoff?           ");
+  lcd.print("Logoff operator?    ");
+  dsp_scr_clear_line(2);
+  lcd.setCursor(0,3);
+  lcd.print("  (Cancel*/Logoff#) ");
+  lcd.setCursor(0,2);
+}
+
+void dsp_scr_master_logoff(void)
+{
+  lcd.setCursor(0,1);
+  lcd.print("Logoff master?      ");
   dsp_scr_clear_line(2);
   lcd.setCursor(0,3);
   lcd.print("  (Cancel*/Logoff#) ");
@@ -645,10 +655,10 @@ int match_master_pwd(char *pwd)
   int i=0;
   
   while(g_master_password[i] != '\0') {
-    if(pwd[i] == '\0') return(0);
     if(pwd[i] != g_master_password[i]) return(0);
     i++;
   }
+  if(pwd[i] != '\0') return(0);
   return(1);
 }
 
@@ -678,12 +688,18 @@ void dsp_scr_fingerscan(int force)
       }
       dsp_scr_operator_auth();
     } else if(l_oi == 2) {
+      if(g_master_auth == 1) {
+        l_mode=0;
+        return;
+      }
       dsp_scr_master_password();
       l_pwd_pos=0;
     } else if(l_oi == 3) {
       dsp_scr_new_operator();
     } else if(l_oi == 4) {
       dsp_scr_operator_logoff();
+    } else if(l_oi == 5) {
+      dsp_scr_master_logoff();
     }
   }
   if(l_mode == 0) {
@@ -714,7 +730,7 @@ void dsp_scr_fingerscan(int force)
       }
     } else if(g_key == UCCB_KEY_ENTER) {
       l_mode=1;
-      if(l_oi == 2) {
+      if((l_oi == 2) && (g_master_auth != 1)) {
         lcd.blink();
       } else if(l_oi == 3) {
       }
@@ -756,27 +772,31 @@ void dsp_scr_fingerscan(int force)
         delay(500);
       }
     } else if(l_oi == 2) {
+      if(g_master_auth == 1) {
+        l_mode=0;
+        return;
+      }
       if((g_key >= '0') && (g_key <= '9')) {
         if(l_pwd_pos+1 >= sizeof(l_pwd)) return;
         l_pwd[l_pwd_pos]=g_key;
         lcd.print("*");
         l_pwd_pos++;
       } else if(g_key == UCCB_KEY_ENTER) {
-        if(l_pwd_pos == 0) {
-          g_master_auth=0;
-        } else {
-          if(l_pwd_pos >= sizeof(l_pwd)) return;
-          l_pwd_pos++;
-          l_pwd[l_pwd_pos]='\0';
-          lcd.setCursor(0,2);
-          if(match_master_pwd(l_pwd) == 1) {
-            lcd.print("         Ok         ");
-            g_master_auth=1;
-            } else {
-            lcd.print("       Failed       ");
-          }
-          l_pwd_pos=0;
+        if(l_pwd_pos >= sizeof(l_pwd)) return;
+        l_pwd_pos++;
+        l_pwd[l_pwd_pos]='\0';
+        lcd.setCursor(0,2);
+        if(match_master_pwd(l_pwd) == 1) {
+          lcd.print("         Ok         ");
+          g_master_auth=1;
+          } else {
+          lcd.print("       Failed       ");
         }
+        while(l_pwd_pos > 0) {
+          l_pwd_pos--;
+          l_pwd[l_pwd_pos]='\0';
+        }
+        l_pwd_pos=0;
         l_mode=0;
         lcd.noBlink();
         force=1;
@@ -804,6 +824,11 @@ void dsp_scr_fingerscan(int force)
     } else if(l_oi == 4) {
       if(g_key == UCCB_KEY_ENTER) {
         g_operator_auth=0;
+        l_mode=0;
+      }
+    } else if(l_oi == 5) {
+      if(g_key == UCCB_KEY_ENTER) {
+        g_master_auth=0;
         l_mode=0;
       }
     }
@@ -875,7 +900,7 @@ void dsp_scr_fingerscan(int force)
       } else {
         lcd.print(" ");
       }
-      lcd.print("Menu line5         ");
+      lcd.print("Master logoff      ");
       l2p++;
     }
     

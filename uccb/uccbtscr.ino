@@ -16,7 +16,7 @@ int tscr_setup(void)
   } else {
     ump_digitalWrite(UCCB_TSCR_ON_UMPPORT,UCCB_TSCR_ON_OFF);
   }
-  Serial3.begin(115200);
+  Serial3.begin(250000);
   return(0);
 }
 
@@ -228,7 +228,9 @@ int tscr_comm_recv(void)
       if(poslight != g_sh1_poslight) {
         g_sh1_poslight=poslight;
         go_sh1_poslight=poslight;
-        dsp_scr_ship3(1);
+        if(g_sw10p == 8) {
+          dsp_scr_ship3(1);
+        }
       }
     } else {
       if(g_sh1_poslight == poslight) {
@@ -253,7 +255,16 @@ int tscr_md_speed(int *m1s, int *m2s, int *rdd)
   if((*m1s != 0) || (*m2s != 0) || (*rdd != 0)) return(0);
   if((g_tscr_power == 0) && (g_tscr_rudder == 0)) return(0);
   g_tscr_takeover=1;
-  *m1s=(g_tscr_power*g_sh1_maxmspeed)/100;
+//  *m1s=(g_tscr_power*(g_sh1_maxmspeed-UCCB_MD_MINSPEED_FWD))/100;
+
+  if(g_tscr_power > 0) {
+    *m1s=UCCB_MD_MINSPEED_FWD+(g_tscr_power*(g_sh1_maxmspeed-UCCB_MD_MINSPEED_FWD))/100;
+  } else if(g_tscr_power < 0) {
+    *m1s=-UCCB_MD_MINSPEED_FWD+(g_tscr_power*(g_sh1_maxmspeed-UCCB_MD_MINSPEED_FWD))/100;
+  } else {
+    *m1s=0;
+  }
+
   *m2s=*m1s;
   *rdd=(((100*g_tscr_rudder)/90)*UCCB_RDD_MAXPOS)/100;
   return(0);

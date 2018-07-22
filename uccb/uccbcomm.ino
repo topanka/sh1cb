@@ -133,6 +133,9 @@ int comm_read(int *state, unsigned char *buf, unsigned int *len)
 
   while(Serial2.available()) {
     c1=(unsigned char)Serial2.read();
+    
+//  Serial.println("ship serial avail");
+  
     if(++nr >= 100) break;
     switch(*state) {
       case UCCB_PST_INIT:

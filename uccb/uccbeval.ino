@@ -3,10 +3,12 @@
 #define UCCB_MD_MINSPEED_REW      -55
 #define xUCCB_MD_MAXSPEED_REW      -400
 
+/*
 #define UCCB_MD_M1_MINSPEED_FWD      45
 #define UCCB_MD_M1_MAXSPEED_FWD      400
 #define UCCB_MD_M1_MINSPEED_REW      -45
 #define UCCB_MD_M1_MAXSPEED_REW      -400
+*/
 
 //#define UCCB_FS_CENGAP            6
 //#define UCCB_TS_CENGAP            6
